@@ -22,6 +22,8 @@ char __shost[512];
 
 #include "os_net/os_net.h"
 
+#include <zmq.h>
+#include "cJSON.h"
 
 /* OS_SyslogD: Monitor the alerts and sends them via syslog.
  * Only return in case of error.
@@ -31,10 +33,13 @@ void OS_CSyslogD(SyslogConfig **syslog_config)
     int s = 0;
     time_t tm;
     struct tm *p;
-    int tries = 0;
+    //int tries = 0;
 
-    file_queue *fileq;
     alert_data *al_data;
+
+    /* XXX DEBUG *///
+    char address[28];
+    strncpy(address, "tcp://127.0.0.1:9010", 21);
 
 
     /* Getting currently time before starting */
@@ -42,20 +47,21 @@ void OS_CSyslogD(SyslogConfig **syslog_config)
     p = localtime(&tm);
 
 
-    /* Initating file queue - to read the alerts */
-    os_calloc(1, sizeof(file_queue), fileq);
-    while( (Init_FileQueue(fileq, p, 0) ) < 0 ) {
-        tries++;
-        if( tries > OS_CSYSLOGD_MAX_TRIES ) {
-            merror("%s: ERROR: Could not open queue after %d tries, exiting!",
-                   ARGV0, tries
-            );
-            exit(1);
-        }
-        sleep(1);
+    /* connect to zmq pubsub */
+    void *zctx = zmq_ctx_new();
+    void *zsub = zmq_socket(zctx, ZMQ_SUB);
+    if(zsub == NULL) {
+	merror("Cannot setup zmq socket(%d): %s", errno, strerror(errno));
+	exit(errno);
     }
-    debug1("%s: INFO: File queue connected.", ARGV0 );
-
+    if(zmq_connect(zsub, address) < 0) {
+	merror("Cannot connect to: %s (%d): %s", address, errno, strerror(errno));
+	exit(errno);
+    }
+    if(zmq_setsockopt(zsub, ZMQ_SUBSCRIBE, "", 0) < 0) {
+	merror("Cannot setsockopt (%d): %s", errno, strerror(errno));
+	exit(errno);
+    }
 
     /* Connecting to syslog. */
     s = 0;
@@ -84,13 +90,83 @@ void OS_CSyslogD(SyslogConfig **syslog_config)
         tm = time(NULL);
         p = localtime(&tm);
 
+	if(!p) { }
 
-        /* Get message if available (timeout of 5 seconds) */
-        al_data = Read_FileMon(fileq, p, 5);
-        if(!al_data)
-        {
-            continue;
-        }
+	al_data = malloc(sizeof(alert_data));
+
+	memset(al_data, 0, sizeof(alert_data));
+	al_data->date = asctime(p);
+
+	/* This isn't available in the json */
+	al_data->alertid = 0;
+
+        /* Get message if available */
+	cJSON *root, *jrule, *jfile;
+	char buf[OS_MAXSTR + 1];
+	int zret = zmq_recv(zsub, buf, OS_MAXSTR, 0);
+	if(zret < 0) {
+		merror("zmq_recv failed (%d): %s", errno, strerror(errno));
+		exit(errno);
+	} else if(zret > OS_MAXSTR) {
+		merror("zmq_recv received more than %d", OS_MAXSTR);
+	}
+	buf[zret + 1] = '\0';
+
+	if((strncmp("ossec.alerts", buf, 12)) == 0) {
+		printf("ossec.alerts: %s\n", buf);
+	} else {
+
+		root=cJSON_Parse(buf);
+		if(!root) {
+			merror("cJSON_Parse failed! Error before: %s\n", cJSON_GetErrorPtr());
+			exit(1);
+		}
+
+		/* Start filling in the fields */
+		if(cJSON_GetObjectItem(root, "location")) {
+			al_data->location = cJSON_GetObjectItem(root, "location")->valuestring;
+		}
+		if(cJSON_GetObjectItem(root, "full_log")) {
+			al_data->log[0] = cJSON_GetObjectItem(root, "full_log")->valuestring;
+		}
+
+		if(cJSON_GetObjectItem(root, "rule")) {
+			jrule = cJSON_GetObjectItem(root, "rule");
+
+			if(cJSON_GetObjectItem(jrule, "level")) {
+				al_data->rule = cJSON_GetObjectItem(jrule, "level")->valueint;
+			}
+
+			if(cJSON_GetObjectItem(jrule, "comment")) {
+				al_data->comment = cJSON_GetObjectItem(jrule, "comment")->valuestring;
+			}
+
+			if(cJSON_GetObjectItem(jrule, "sidid")) {
+				al_data->rule = cJSON_GetObjectItem(jrule, "sidid")->valueint;
+			}
+
+
+		}
+
+		if(cJSON_GetObjectItem(root, "file")) {
+			jfile = cJSON_GetObjectItem(root, "file");
+
+			if(cJSON_GetObjectItem(jfile, "md5_before")) {
+				al_data->old_md5 = cJSON_GetObjectItem(jfile, "md5_before")->valuestring;
+			}
+			if(cJSON_GetObjectItem(jfile, "md5_after")) {
+				al_data->new_md5 = cJSON_GetObjectItem(jfile, "md5_after")->valuestring;
+			}
+			if(cJSON_GetObjectItem(jfile, "sha1_before")) {
+				al_data->old_sha1 = cJSON_GetObjectItem(jfile, "sha1_before")->valuestring;
+			}
+			if(cJSON_GetObjectItem(jfile, "sha1_after")) {
+				al_data->new_sha1 = cJSON_GetObjectItem(jfile, "sha1_after")->valuestring;
+			}
+
+		}
+
+	}		
 
 
 
