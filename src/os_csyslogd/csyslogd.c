@@ -166,21 +166,25 @@ void OS_CSyslogD(SyslogConfig **syslog_config)
 
 		}
 
+printf("1: %s\n", al_data->comment);
 	}		
 
+printf("2: %s\n", al_data->comment);
 
 
         /* Sending via syslog */
+/*
         s = 0;
         while(syslog_config[s])
         {
             OS_Alert_SendSyslog(al_data, syslog_config[s]);
             s++;
         }
-
+*/
 
         /* Clearing the memory */
-        FreeAlertData(al_data);
+        //FreeAlertData(al_data);
+        free(al_data);
     }
 }
 
