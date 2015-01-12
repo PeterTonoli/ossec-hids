@@ -130,6 +130,12 @@ void OS_CSyslogD(SyslogConfig **syslog_config)
 		if(cJSON_GetObjectItem(root, "location")) {
 			al_data->location = cJSON_GetObjectItem(root, "location")->valuestring;
 		}
+
+		al_data->log = calloc(1, OS_SIZE_2048 + 1);
+		if(al_data->log == NULL) {
+			merror("al_data->log == NULL");
+		}
+
 		if(cJSON_GetObjectItem(root, "full_log")) {
 			al_data->log[0] = cJSON_GetObjectItem(root, "full_log")->valuestring;
 		}
@@ -177,17 +183,16 @@ printf("2: %s\n", al_data->comment);
 
 
         /* Sending via syslog */
-/*
         s = 0;
         while(syslog_config[s])
         {
             OS_Alert_SendSyslog(al_data, syslog_config[s]);
             s++;
         }
-*/
 
         /* Clearing the memory */
         //FreeAlertData(al_data);
+        free(al_data->log);
         free(al_data);
     }
 }
