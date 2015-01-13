@@ -112,13 +112,11 @@ void OS_CSyslogD(SyslogConfig **syslog_config)
 	}
 	buf[zret + 1] = '\0';
 
-	printf("buf: %s\n", buf);
-
-
 	if((strncmp("ossec.alerts", buf, 12)) == 0) {
-		printf("ossec.alerts: %s\n", buf);
+		//printf("ossec.alerts: %s\n", buf);
 		continue;
 	} else {
+		//printf("buf: %s\n", buf);
 
 		root=cJSON_Parse(buf);
 		if(!root) {
@@ -176,11 +174,7 @@ void OS_CSyslogD(SyslogConfig **syslog_config)
 
 		}
 
-printf("1: %s\n", al_data->comment);
 	}		
-
-printf("2: %s\n", al_data->comment);
-
 
         /* Sending via syslog */
         s = 0;
