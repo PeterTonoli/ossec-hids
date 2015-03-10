@@ -9,7 +9,7 @@
 
 #include "shared.h"
 #include "os_win32ui.h"
-#include "os_win.h"
+#include "../os_win.h"
 #include "os_xml/os_xml.h"
 #include "os_net/os_net.h"
 #include "validate_op.h"
@@ -170,7 +170,7 @@ void init_config()
 }
 
 /* Read ossec config */
-int config_read(HWND hwnd)
+int config_read(__attribute__((unused)) HWND hwnd)
 {
     char *tmp_str;
     char *delim = " - ";

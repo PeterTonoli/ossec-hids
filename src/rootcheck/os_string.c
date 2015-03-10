@@ -157,7 +157,7 @@ int os_string(char *file, char *regex)
     }
 
     /* Allocate the buffer */
-    bfr = calloc(STR_MINLEN + 2, sizeof(unsigned char));
+    bfr = (unsigned char *) calloc(STR_MINLEN + 2, sizeof(unsigned char));
     if (!bfr) {
         merror(MEM_ERROR, ARGV0, errno, strerror(errno));
         return (0);
@@ -263,7 +263,7 @@ int os_getch(os_strings *oss)
 }
 
 #else
-int os_string(char *file, char *regex)
+int os_string(__attribute__((unused)) char *file, __attribute__((unused)) char *regex)
 {
     return (0);
 }

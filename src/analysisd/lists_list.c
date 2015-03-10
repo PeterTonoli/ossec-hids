@@ -15,12 +15,9 @@
 #include <string.h>
 #include <errno.h>
 
-/* Prototypes */
-ListNode *_OS_AddList(ListNode *new_listnode);
-
-/* Global variables */
-ListNode *global_listnode;
-ListRule *global_listrule;
+/* Local variables */
+static ListNode *global_listnode;
+static ListRule *global_listrule;
 
 
 /* Create the ListRule */
@@ -40,12 +37,6 @@ ListNode *OS_GetFirstList()
     return (listnode_pt);
 }
 
-ListRule *OS_GetFirstListRule()
-{
-    ListRule *listrule_pt = global_listrule;
-    return listrule_pt;
-}
-
 void OS_ListLoadRules()
 {
     ListRule *lrule = global_listrule;
@@ -56,21 +47,6 @@ void OS_ListLoadRules()
         }
         lrule = lrule->next;
     }
-}
-
-ListRule *_OS_AddListRule(ListRule *new_listrule)
-{
-
-    if (global_listrule == NULL) {
-        global_listrule = new_listrule;
-    } else {
-        ListRule *last_list_rule = global_listrule;
-        while (last_list_rule->next != NULL) {
-            last_list_rule = last_list_rule->next;
-        }
-        last_list_rule->next = new_listrule;
-    }
-    return (global_listrule);
 }
 
 /* External AddList */
@@ -92,7 +68,7 @@ int OS_AddList(ListNode *new_listnode)
     return 0;
 }
 
-ListNode *OS_FindList(char *listname)
+ListNode *OS_FindList(const char *listname)
 {
     ListNode *last_list_node = OS_GetFirstList();
     if (last_list_node != NULL) {
@@ -116,6 +92,10 @@ ListRule *OS_AddListRule(ListRule *first_rule_list,
 {
     ListRule *new_rulelist_pt = NULL;
     new_rulelist_pt = (ListRule *)calloc(1, sizeof(ListRule));
+    if (!new_rulelist_pt) {
+        return (NULL);
+    }
+
     new_rulelist_pt->field = field;
     new_rulelist_pt->next = NULL;
     new_rulelist_pt->matcher = matcher;
@@ -145,7 +125,7 @@ ListRule *OS_AddListRule(ListRule *first_rule_list,
     return first_rule_list;
 }
 
-int _OS_CDBOpen(ListNode *lnode)
+static int _OS_CDBOpen(ListNode *lnode)
 {
     int fd;
     if (lnode->loaded != 1) {
@@ -159,7 +139,7 @@ int _OS_CDBOpen(ListNode *lnode)
     return 0;
 }
 
-int OS_DBSearchKeyValue(ListRule *lrule, char *key)
+static int OS_DBSearchKeyValue(ListRule *lrule, char *key)
 {
     int result = -1;
     char *val;
@@ -171,7 +151,7 @@ int OS_DBSearchKeyValue(ListRule *lrule, char *key)
         if (cdb_find(&lrule->db->cdb, key, strlen(key)) > 0 ) {
             vpos = cdb_datapos(&lrule->db->cdb);
             vlen = cdb_datalen(&lrule->db->cdb);
-            val = malloc(vlen);
+            val = (char *) malloc(vlen);
             cdb_read(&lrule->db->cdb, val, vlen, vpos);
             result = OSMatch_Execute(val, vlen, lrule->matcher);
             free(val);
@@ -183,7 +163,7 @@ int OS_DBSearchKeyValue(ListRule *lrule, char *key)
     return 0;
 }
 
-int OS_DBSeachKey(ListRule *lrule, char *key)
+static int OS_DBSeachKey(ListRule *lrule, char *key)
 {
     if (lrule->db != NULL) {
         if (_OS_CDBOpen(lrule->db) == -1) {
@@ -196,7 +176,7 @@ int OS_DBSeachKey(ListRule *lrule, char *key)
     return 0;
 }
 
-int OS_DBSeachKeyAddress(ListRule *lrule, char *key)
+static int OS_DBSeachKeyAddress(ListRule *lrule, char *key)
 {
     if (lrule->db != NULL) {
         if (_OS_CDBOpen(lrule->db) == -1) {
@@ -223,7 +203,7 @@ int OS_DBSeachKeyAddress(ListRule *lrule, char *key)
     return 0;
 }
 
-int OS_DBSearchKeyAddressValue(ListRule *lrule, char *key)
+static int OS_DBSearchKeyAddressValue(ListRule *lrule, char *key)
 {
     int result = -1;
     char *val;
@@ -237,7 +217,7 @@ int OS_DBSearchKeyAddressValue(ListRule *lrule, char *key)
         if (cdb_find(&lrule->db->cdb, key, strlen(key)) > 0 ) {
             vpos = cdb_datapos(&lrule->db->cdb);
             vlen = cdb_datalen(&lrule->db->cdb);
-            val = malloc(vlen);
+            val = (char *) malloc(vlen);
             cdb_read(&lrule->db->cdb, val, vlen, vpos);
             result = OSMatch_Execute(val, vlen, lrule->matcher);
             free(val);
@@ -251,7 +231,7 @@ int OS_DBSearchKeyAddressValue(ListRule *lrule, char *key)
                     if ( cdb_find(&lrule->db->cdb, tmpkey, strlen(tmpkey)) > 0 ) {
                         vpos = cdb_datapos(&lrule->db->cdb);
                         vlen = cdb_datalen(&lrule->db->cdb);
-                        val = malloc(vlen);
+                        val = (char *) malloc(vlen);
                         cdb_read(&lrule->db->cdb, val, vlen, vpos);
                         result = OSMatch_Execute(val, vlen, lrule->matcher);
                         free(val);
@@ -280,50 +260,38 @@ int OS_DBSearch(ListRule *lrule, char *key)
             //debug1("LR_STRING_MATCH");
             if (OS_DBSeachKey(lrule, key) == 1) {
                 return 1;
-            } else {
-                return 0;
             }
-            break;
+            return 0;
         case LR_STRING_NOT_MATCH:
             //debug1("LR_STRING_NOT_MATCH");
             if (OS_DBSeachKey(lrule, key) == 1) {
                 return 0;
-            } else {
-                return 1;
             }
-            break;
+            return 1;
         case LR_STRING_MATCH_VALUE:
             //debug1("LR_STRING_MATCH_VALUE");
             if (OS_DBSearchKeyValue(lrule, key) == 1) {
                 return 1;
-            } else {
-                return 0;
             }
-            break;
+            return 0;
         case LR_ADDRESS_MATCH:
             //debug1("LR_ADDRESS_MATCH");
             return OS_DBSeachKeyAddress(lrule, key);
-            break;
         case LR_ADDRESS_NOT_MATCH:
             //debug1("LR_ADDRESS_NOT_MATCH");
             if (OS_DBSeachKeyAddress(lrule, key) == 0) {
                 return 1;
-            } else {
-                return 0;
             }
-            break;
+            return 0;
         case LR_ADDRESS_MATCH_VALUE:
             //debug1("LR_ADDRESS_MATCH_VALUE");
             if (OS_DBSearchKeyAddressValue(lrule, key) == 0) {
                 return 1;
-            } else {
-                return 0;
             }
-            break;
+            return 0;
         default:
             debug1("lists_list.c::OS_DBSearch should never hit default");
             return 0;
     }
-    return 0;
 }
 

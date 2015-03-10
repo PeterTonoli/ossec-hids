@@ -71,18 +71,18 @@ typedef struct _RuleInfoDetail {
 typedef struct _RuleInfo {
     int sigid;  /* id attribute -- required*/
     int level;  /* level attribute --required */
-    int maxsize;
+    size_t maxsize;
     int frequency;
     int timeframe;
 
     u_int8_t context; /* Not an user option */
 
     int firedtimes;  /* Not an user option */
-    int time_ignored; /* Not an user option */
+    time_t time_ignored; /* Not an user option */
     int ignore_time;
     int ignore;
     int ckignore;
-    int group_prev_matched_sz;
+    unsigned int group_prev_matched_sz;
 
     int __frequency;
     char **last_events;
@@ -166,9 +166,9 @@ typedef struct _RuleNode {
 } RuleNode;
 
 
-RuleInfo *currently_rule;
+extern RuleInfo *currently_rule;
 
-RuleInfoDetail *zeroinfodetails(int type, char *data);
+RuleInfoDetail *zeroinfodetails(int type, const char *data);
 int get_info_attributes(char **attributes, char **values);
 
 /* RuleInfo functions */
@@ -185,7 +185,7 @@ RuleInfo *zerorulemember(int id,
 /** Rule_list Functions **/
 
 /* create the rule list */
-void OS_CreateRuleList();
+void OS_CreateRuleList(void);
 
 /* Add rule information to the list */
 int OS_AddRule(RuleInfo *read_rule);
@@ -203,7 +203,15 @@ int OS_MarkGroup(RuleNode *r_node, RuleInfo *orig_rule);
 int OS_MarkID(RuleNode *r_node, RuleInfo *orig_rule);
 
 /* Get first rule */
-RuleNode *OS_GetFirstRule();
+RuleNode *OS_GetFirstRule(void);
+
+void Rules_OP_CreateRules(void);
+
+int Rules_OP_ReadRules(const char *rulefile);
+
+int AddHash_Rule(RuleNode *node);
+
+int _setlevels(RuleNode *node, int nnode);
 
 /** Definition of the internal rule IDS **
  ** These SIGIDs cannot be used         **
@@ -222,6 +230,9 @@ RuleNode *OS_GetFirstRule();
 #define SYSCHECK_MOD3   "syscheck_integrity_changed_3rd"
 #define SYSCHECK_NEW    "syscheck_new_entry"
 #define SYSCHECK_DEL    "syscheck_deleted"
+
+/* Global variables */
+extern int _max_freq;
 
 #endif /* _OS_RULES */
 

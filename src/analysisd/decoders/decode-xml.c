@@ -21,11 +21,14 @@
 #endif
 
 /* Internal functions */
-char *_loadmemory(char *at, char *str);
-OSStore *os_decoder_store = NULL;
+static char *_loadmemory(char *at, char *str);
+static int addDecoder2list(const char *name);
+static int os_setdecoderids(const char *p_name);
+static int ReadDecodeAttrs(char *const *names, char *const *values);
+static OSStore *os_decoder_store = NULL;
 
 
-int getDecoderfromlist(char *name)
+int getDecoderfromlist(const char *name)
 {
     if (os_decoder_store) {
         return (OSStore_GetPosition(os_decoder_store, name));
@@ -34,7 +37,7 @@ int getDecoderfromlist(char *name)
     return (0);
 }
 
-int addDecoder2list(char *name)
+static int addDecoder2list(const char *name)
 {
     if (os_decoder_store == NULL) {
         os_decoder_store = OSStore_Create();
@@ -53,7 +56,7 @@ int addDecoder2list(char *name)
     return (1);
 }
 
-int os_setdecoderids(char *p_name)
+static int os_setdecoderids(const char *p_name)
 {
     OSDecoderNode *node;
     OSDecoderNode *child_node;
@@ -67,7 +70,7 @@ int os_setdecoderids(char *p_name)
 
     do {
         int p_id = 0;
-        char *p_name;
+        char *tmp_name;
 
         nnode = node->osdecoder;
         nnode->id = getDecoderfromlist(nnode->name);
@@ -85,7 +88,7 @@ int os_setdecoderids(char *p_name)
 
         /* Set parent id */
         p_id = nnode->id;
-        p_name = nnode->name;
+        tmp_name = nnode->name;
 
         /* Also set on the child nodes */
         while (child_node) {
@@ -97,7 +100,7 @@ int os_setdecoderids(char *p_name)
                 nnode->id = p_id;
 
                 /* Set parent name */
-                nnode->name = p_name;
+                nnode->name = tmp_name;
             }
 
             /* Id cannot be 0 */
@@ -111,7 +114,7 @@ int os_setdecoderids(char *p_name)
     return (1);
 }
 
-int ReadDecodeAttrs(char **names, char **values)
+static int ReadDecodeAttrs(char *const *names, char *const *values)
 {
     if (!names || !values) {
         return (0);
@@ -146,7 +149,7 @@ int ReadDecodeAttrs(char **names, char **values)
     return (AFTER_ERROR);
 }
 
-int ReadDecodeXML(char *file)
+int ReadDecodeXML(const char *file)
 {
     OS_XML xml;
     XML_NODE node = NULL;
@@ -154,20 +157,20 @@ int ReadDecodeXML(char *file)
     /* XML variables */
     /* These are the available options for the rule configuration */
 
-    char *xml_plugindecoder = "plugin_decoder";
-    char *xml_decoder = "decoder";
-    char *xml_decoder_name = "name";
-    char *xml_decoder_status = "status";
-    char *xml_usename = "use_own_name";
-    char *xml_parent = "parent";
-    char *xml_program_name = "program_name";
-    char *xml_prematch = "prematch";
-    char *xml_regex = "regex";
-    char *xml_order = "order";
-    char *xml_type = "type";
-    char *xml_fts = "fts";
-    char *xml_ftscomment = "ftscomment";
-    char *xml_accumulate = "accumulate";
+    const char *xml_plugindecoder = "plugin_decoder";
+    const char *xml_decoder = "decoder";
+    const char *xml_decoder_name = "name";
+    const char *xml_decoder_status = "status";
+    const char *xml_usename = "use_own_name";
+    const char *xml_parent = "parent";
+    const char *xml_program_name = "program_name";
+    const char *xml_prematch = "prematch";
+    const char *xml_regex = "regex";
+    const char *xml_order = "order";
+    const char *xml_type = "type";
+    const char *xml_fts = "fts";
+    const char *xml_ftscomment = "ftscomment";
+    const char *xml_accumulate = "accumulate";
 
     int i = 0;
     OSDecoderInfo *NULL_Decoder_tmp = NULL;
@@ -205,7 +208,7 @@ int ReadDecodeXML(char *file)
     NULL_Decoder_tmp->type = SYSLOG;
     NULL_Decoder_tmp->name = NULL;
     NULL_Decoder_tmp->fts = 0;
-    NULL_Decoder = (void *)NULL_Decoder_tmp;
+    NULL_Decoder = NULL_Decoder_tmp;
 
     i = 0;
     while (node[i]) {
@@ -383,10 +386,9 @@ int ReadDecodeXML(char *file)
                     if (strcmp(plugin_decoders[ed_c],
                                elements[j]->content) == 0) {
                         /* Initialize plugin */
-                        void (*dec_init)() = plugin_decoders_init[ed_c];
-
+                        void (*dec_init)(void) = (void (*)(void)) plugin_decoders_init[ed_c];
                         dec_init();
-                        pi->plugindecoder = plugin_decoders_exec[ed_c];
+                        pi->plugindecoder = (void (*)(void *)) plugin_decoders_exec[ed_c];
                         break;
                     }
                 }
@@ -444,37 +446,37 @@ int ReadDecodeXML(char *file)
                 /* Check the values from the order */
                 while (*norder) {
                     if (strstr(*norder, "dstuser") != NULL) {
-                        pi->order[order_int] = (void *)DstUser_FP;
+                        pi->order[order_int] = (void (*)(void *, char *)) DstUser_FP;
                     } else if (strstr(*norder, "srcuser") != NULL) {
-                        pi->order[order_int] = (void *)SrcUser_FP;
+                        pi->order[order_int] = (void (*)(void *, char *)) SrcUser_FP;
                     }
                     /* User is an alias to dstuser */
                     else if (strstr(*norder, "user") != NULL) {
-                        pi->order[order_int] = (void *)DstUser_FP;
+                        pi->order[order_int] = (void (*)(void *, char *)) DstUser_FP;
                     } else if (strstr(*norder, "srcip") != NULL) {
-                        pi->order[order_int] = (void *)SrcIP_FP;
+                        pi->order[order_int] = (void (*)(void *, char *)) SrcIP_FP;
                     } else if (strstr(*norder, "dstip") != NULL) {
-                        pi->order[order_int] = (void *)DstIP_FP;
+                        pi->order[order_int] = (void (*)(void *, char *)) DstIP_FP;
                     } else if (strstr(*norder, "srcport") != NULL) {
-                        pi->order[order_int] = (void *)SrcPort_FP;
+                        pi->order[order_int] = (void (*)(void *, char *)) SrcPort_FP;
                     } else if (strstr(*norder, "dstport") != NULL) {
-                        pi->order[order_int] = (void *)DstPort_FP;
+                        pi->order[order_int] = (void (*)(void *, char *)) DstPort_FP;
                     } else if (strstr(*norder, "protocol") != NULL) {
-                        pi->order[order_int] = (void *)Protocol_FP;
+                        pi->order[order_int] = (void (*)(void *, char *)) Protocol_FP;
                     } else if (strstr(*norder, "action") != NULL) {
-                        pi->order[order_int] = (void *)Action_FP;
+                        pi->order[order_int] = (void (*)(void *, char *)) Action_FP;
                     } else if (strstr(*norder, "id") != NULL) {
-                        pi->order[order_int] = (void *)ID_FP;
+                        pi->order[order_int] = (void (*)(void *, char *)) ID_FP;
                     } else if (strstr(*norder, "url") != NULL) {
-                        pi->order[order_int] = (void *)Url_FP;
+                        pi->order[order_int] = (void (*)(void *, char *)) Url_FP;
                     } else if (strstr(*norder, "data") != NULL) {
-                        pi->order[order_int] = (void *)Data_FP;
+                        pi->order[order_int] = (void (*)(void *, char *)) Data_FP;
                     } else if (strstr(*norder, "extra_data") != NULL) {
-                        pi->order[order_int] = (void *)Data_FP;
+                        pi->order[order_int] = (void (*)(void *, char *)) Data_FP;
                     } else if (strstr(*norder, "status") != NULL) {
-                        pi->order[order_int] = (void *)Status_FP;
+                        pi->order[order_int] = (void (*)(void *, char *)) Status_FP;
                     } else if (strstr(*norder, "system_name") != NULL) {
-                        pi->order[order_int] = (void *)SystemName_FP;
+                        pi->order[order_int] = (void (*)(void *, char *)) SystemName_FP;
                     } else {
                         ErrorExit("decode-xml: Wrong field '%s' in the order"
                                   " of decoder '%s'", *norder, pi->name);
@@ -714,9 +716,9 @@ int SetDecodeXML()
 char *_loadmemory(char *at, char *str)
 {
     if (at == NULL) {
-        int strsize = 0;
+        size_t strsize = 0;
         if ((strsize = strlen(str)) < OS_SIZE_1024) {
-            at = calloc(strsize + 1, sizeof(char));
+            at = (char *) calloc(strsize + 1, sizeof(char));
             if (at == NULL) {
                 merror(MEM_ERROR, ARGV0, errno, strerror(errno));
                 return (NULL);
@@ -730,14 +732,14 @@ char *_loadmemory(char *at, char *str)
     }
     /* At is not null. Need to reallocate its memory and copy str to it */
     else {
-        int strsize = strlen(str);
-        int atsize = strlen(at);
-        int finalsize = atsize + strsize + 1;
+        size_t strsize = strlen(str);
+        size_t atsize = strlen(at);
+        size_t finalsize = atsize + strsize + 1;
         if (finalsize > OS_SIZE_1024) {
             merror(SIZE_ERROR, ARGV0, str);
             return (NULL);
         }
-        at = realloc(at, (finalsize + 1) * sizeof(char));
+        at = (char *) realloc(at, (finalsize + 1) * sizeof(char));
         if (at == NULL) {
             merror(MEM_ERROR, ARGV0, errno, strerror(errno));
             return (NULL);

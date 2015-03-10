@@ -7,15 +7,11 @@
  * Foundation.
  */
 
-#include "eventinfo.h"
+#include "dodiff.h"
+
 #include "shared.h"
 
-/* Global variables */
-char flastcontent[OS_SIZE_8192 + 1];
-char *fmsglast = "Previous output:";
-
-
-static int _add2last(char *str, int strsize, char *file)
+static int _add2last(const char *str, size_t strsize, const char *file)
 {
     FILE *fp;
 
@@ -70,9 +66,9 @@ static int _add2last(char *str, int strsize, char *file)
     return (1);
 }
 
-int doDiff(RuleInfo *currently_rule, Eventinfo *lf)
+int doDiff(RuleInfo *rule, const Eventinfo *lf)
 {
-    int date_of_change;
+    time_t date_of_change;
     char *htpt = NULL;
     char flastfile[OS_SIZE_2048 + 1];
     char flastcontent[OS_SIZE_8192 + 1];
@@ -80,7 +76,7 @@ int doDiff(RuleInfo *currently_rule, Eventinfo *lf)
     /* Clean up global */
     flastcontent[0] = '\0';
     flastcontent[OS_SIZE_8192] = '\0';
-    currently_rule->last_events[0] = NULL;
+    rule->last_events[0] = NULL;
 
     if (lf->hostname[0] == '(') {
         htpt = strchr(lf->hostname, ')');
@@ -88,7 +84,7 @@ int doDiff(RuleInfo *currently_rule, Eventinfo *lf)
             *htpt = '\0';
         }
         snprintf(flastfile, OS_SIZE_2048, "%s/%s/%d/%s", DIFF_DIR, lf->hostname + 1,
-                 currently_rule->sigid, DIFF_LAST_FILE);
+                 rule->sigid, DIFF_LAST_FILE);
 
         if (htpt) {
             *htpt = ')';
@@ -96,12 +92,12 @@ int doDiff(RuleInfo *currently_rule, Eventinfo *lf)
         htpt = NULL;
     } else {
         snprintf(flastfile, OS_SIZE_2048, "%s/%s/%d/%s", DIFF_DIR, lf->hostname,
-                 currently_rule->sigid, DIFF_LAST_FILE);
+                 rule->sigid, DIFF_LAST_FILE);
     }
 
     /* lf->size can't be too long */
     if (lf->size >= OS_SIZE_8192) {
-        merror("%s: ERROR: event size (%d) too long for diff.", ARGV0, lf->size);
+        merror("%s: ERROR: event size (%ld) too long for diff.", ARGV0, lf->size);
         return (0);
     }
 
@@ -115,7 +111,7 @@ int doDiff(RuleInfo *currently_rule, Eventinfo *lf)
         return (0);
     } else {
         FILE *fp;
-        int n;
+        size_t n;
         fp = fopen(flastfile, "r");
         if (!fp) {
             merror(FOPEN_ERROR, ARGV0, flastfile, errno, strerror(errno));
@@ -142,8 +138,8 @@ int doDiff(RuleInfo *currently_rule, Eventinfo *lf)
         merror("%s: ERROR: unable to create last file: %s", ARGV0, flastfile);
     }
 
-    currently_rule->last_events[0] = fmsglast;
-    currently_rule->last_events[1] = flastcontent;
+    rule->last_events[0] = "Previous output:";
+    rule->last_events[1] = flastcontent;
     return (1);
 }
 

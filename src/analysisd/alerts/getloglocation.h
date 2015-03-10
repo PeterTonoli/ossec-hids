@@ -13,17 +13,19 @@
 #include "eventinfo.h"
 
 /* Start the log location (need to be called before getlog) */
-void OS_InitLog();
-void OS_InitFwLog();
+void OS_InitLog(void);
+void OS_InitFwLog(void);
 
 /* Get the log file based on the date/logtype
  * Returns 0 on success or -1 on error
  */
-int OS_GetLogLocation(Eventinfo *lf);
+int OS_GetLogLocation(const Eventinfo *lf);
 
-FILE *_eflog;
-FILE *_aflog;
-FILE *_fflog;
+/* Global declarations */
+extern FILE *_eflog;
+extern FILE *_aflog;
+extern FILE *_fflog;
+extern FILE *_jflog;
 
 #endif /* __GETLL_H */
 

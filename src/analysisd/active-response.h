@@ -15,18 +15,15 @@
 #include "list_op.h"
 
 /* Initialize active response */
-void AR_Init();
+void AR_Init(void);
 
 /* Read active response configuration and write it
  * to the appropriate lists.
  */
 int AR_ReadConfig(const char *cfgfile);
 
-/* Active response commands */
-OSList *ar_commands;
-
 /* Active response information */
-OSList *active_responses;
+extern OSList *active_responses;
 
 #endif /* _AR__H */
 

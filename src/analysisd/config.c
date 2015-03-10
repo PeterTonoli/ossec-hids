@@ -15,8 +15,10 @@
 #include "analysisd.h"
 #include "config.h"
 
+long int __crt_ftell; /* Global ftell pointer */
+_Config Config;       /* Global Config structure */
 
-int GlobalConf(char *cfgfile)
+int GlobalConf(const char *cfgfile)
 {
     int modules = 0;
 
@@ -30,6 +32,7 @@ int GlobalConf(char *cfgfile)
     Config.prelude = 0;
     Config.zeromq_output = 0;
     Config.zeromq_output_uri = NULL;
+    Config.jsonout_output = 0;
     Config.memorysize = 1024;
     Config.mailnotify = -1;
     Config.keeplogdate = 0;

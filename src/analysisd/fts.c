@@ -12,14 +12,14 @@
 #include "fts.h"
 #include "eventinfo.h"
 
-/* Global variables */
-unsigned int fts_minsize_for_str = 0;
+/* Local variables */
+static unsigned int fts_minsize_for_str = 0;
 
-OSList *fts_list = NULL;
-OSHash *fts_store = NULL;
+static OSList *fts_list = NULL;
+static OSHash *fts_store = NULL;
 
-FILE *fp_list = NULL;
-FILE *fp_ignore = NULL;
+static FILE *fp_list = NULL;
+static FILE *fp_ignore = NULL;
 
 
 /* Start the FTS module */
@@ -71,7 +71,10 @@ int FTS_Init()
             fclose(fp_list);
         }
 
-        chmod(FTS_QUEUE, 0640);
+        if (chmod(FTS_QUEUE, 0640) == -1) {
+            merror(CHMOD_ERROR, ARGV0, FTS_QUEUE, errno, strerror(errno));
+            return 0;
+        }
 
         uid_t uid = Privsep_GetUser(USER);
         gid_t gid = Privsep_GetGroup(GROUPGLOBAL);
@@ -116,7 +119,10 @@ int FTS_Init()
             fclose(fp_ignore);
         }
 
-        chmod(IG_QUEUE, 0640);
+        if (chmod(IG_QUEUE, 0640) == -1) {
+            merror(CHMOD_ERROR, ARGV0, IG_QUEUE, errno, strerror(errno));
+            return (0);
+        }
 
         uid_t uid = Privsep_GetUser(USER);
         gid_t gid = Privsep_GetGroup(GROUPGLOBAL);

@@ -1,12 +1,21 @@
-#include "shared.h"
-#include "eventinfo.h"
+/* Copyright (C) 2015 Trend Micro Inc.
+ * All rights reserved.
+ *
+ * This program is a free software; you can redistribute it
+ * and/or modify it under the terms of the GNU General Public
+ * License (version 2) as published by the FSF - Free Software
+ * Foundation.
+ */
+
+#include "to_json.h"
+
 #include "shared.h"
 #include "rules.h"
 #include "cJSON.h"
 
 
 /* Convert Eventinfo to json */
-char *Eventinfo_to_jsonstr(Eventinfo *lf)
+char *Eventinfo_to_jsonstr(const Eventinfo *lf)
 {
     cJSON *root;
     cJSON *rule;
@@ -27,7 +36,7 @@ char *Eventinfo_to_jsonstr(Eventinfo *lf)
     if (lf->generated_rule->cve) {
         cJSON_AddStringToObject(rule, "cve", lf->generated_rule->cve);
     }
-    if (lf->generated_rule->cve) {
+    if (lf->generated_rule->info) {
         cJSON_AddStringToObject(rule, "info", lf->generated_rule->info);
     }
 
