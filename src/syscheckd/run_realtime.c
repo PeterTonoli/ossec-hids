@@ -55,10 +55,14 @@ int realtime_checksumfile(const char *file_name)
         }
 
         if (strcmp(c_sum, buf + 6) != 0) {
-            char *fullalert = NULL;
             char alert_msg[OS_MAXSTR + 1];
 
             alert_msg[OS_MAXSTR] = '\0';
+
+            #ifdef WIN32
+            snprintf(alert_msg, 912, "%s %s", c_sum, file_name);
+            #else
+            char *fullalert = NULL;
 
             if (buf[5] == 's' || buf[5] == 'n') {
                 fullalert = seechanges_addfile(file_name);
@@ -72,6 +76,7 @@ int realtime_checksumfile(const char *file_name)
             } else {
                 snprintf(alert_msg, 912, "%s %s", c_sum, file_name);
             }
+            #endif
             send_syscheck_msg(alert_msg);
 
             return (1);
@@ -194,6 +199,11 @@ int realtime_process()
                 snprintf(final_name, MAX_LINE, "%s/%s",
                          (char *)OSHash_Get(syscheck.realtime->dirtb, wdchar),
                          event->name);
+		/* Need a sleep here to avoid triggering on vim edits
+  		 * (and finding the file removed)
+  		 */
+		sleep(1);
+
                 realtime_checksumfile(final_name);
             }
 
