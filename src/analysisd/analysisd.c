@@ -319,7 +319,7 @@ int main_analysisd(int argc, char **argv)
                 decodersfiles = Config.decoders;
                 while ( decodersfiles && *decodersfiles) {
                     if (!test_config) {
-                        verbose("%s: INFO: Reading decoder file %s.", ARGV0, *decodersfiles);
+                       	verbose("%s: INFO: Reading decoder file %s.", ARGV0, *decodersfiles);
                     }
                     if (!ReadDecodeXML(*decodersfiles)) {
                         ErrorExit(CONFIG_ERROR, ARGV0, *decodersfiles);

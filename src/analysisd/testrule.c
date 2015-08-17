@@ -60,6 +60,7 @@ static void help_logtest(void)
 int main(int argc, char **argv)
 {
     int test_config = 0;
+    int debug_level = 0;
     int c = 0;
     char *ut_str = NULL;
     const char *dir = DEFAULTDIR;
@@ -89,6 +90,7 @@ int main(int argc, char **argv)
                 help_logtest();
                 break;
             case 'd':
+		debug_level++;
                 nowDebug();
                 break;
             case 'U':
@@ -181,7 +183,9 @@ int main(int argc, char **argv)
                 decodersfiles = Config.decoders;
                 while ( decodersfiles && *decodersfiles) {
 
-                    verbose("%s: INFO: Reading decoder file %s.", ARGV0, *decodersfiles);
+		    if(debug_level > 0) {
+                        verbose("%s: INFO: Reading decoder file %s.", ARGV0, *decodersfiles);
+		    }
                     if (!ReadDecodeXML(*decodersfiles)) {
                         ErrorExit(CONFIG_ERROR, ARGV0, *decodersfiles);
                     }
