@@ -67,6 +67,7 @@ typedef struct _RuleInfo {
     int maxsize;
     int frequency;
     int timeframe;
+    int rev;
 
     u_int8_t context; /* Not a user option */
 
