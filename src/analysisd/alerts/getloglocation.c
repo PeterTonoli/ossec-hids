@@ -90,7 +90,10 @@ int OS_GetLogLocation(const Eventinfo *lf)
     }
 
     /* Create a symlink */
-    unlink(EVENTS_DAILY);
+    if(unlink(EVENTS_DAILY) < 0) {
+	merror("%s: Failed to unlink %s (%d): %s", ARGV0, EVENTS_DAILY, errno, strerror(errno));
+    }
+	
 
     if (link(__elogfile, EVENTS_DAILY) == -1) {
         ErrorExit(LINK_ERROR, ARGV0, __elogfile, EVENTS_DAILY, errno, strerror(errno));
@@ -133,7 +136,9 @@ int OS_GetLogLocation(const Eventinfo *lf)
     }
 
     /* Create a symlink */
-    unlink(ALERTS_DAILY);
+    if(unlink(ALERTS_DAILY) < 0) {
+	merror("%s: Failed to unlink %s (%d): %s", ARGV0, ALERTS_DAILY, errno, strerror(errno));
+    }
 
     if (link(__alogfile, ALERTS_DAILY) == -1) {
         ErrorExit(LINK_ERROR, ARGV0, __alogfile, ALERTS_DAILY, errno, strerror(errno));
@@ -155,7 +160,9 @@ int OS_GetLogLocation(const Eventinfo *lf)
         }
 
         /* Create a symlink */
-        unlink(ALERTSJSON_DAILY);
+        if(unlink(ALERTSJSON_DAILY) < 0) {
+		merror("%s: Failed to unlink %s (%d): %s", ARGV0, ALERTSJSON_DAILY, errno, strerror(errno));
+    	}
 
         if (link(__jlogfile, ALERTSJSON_DAILY) == -1) {
             ErrorExit(LINK_ERROR, ARGV0, __jlogfile, ALERTSJSON_DAILY, errno, strerror(errno));
