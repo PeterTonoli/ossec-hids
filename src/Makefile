@@ -614,7 +614,7 @@ $(error Do not use 'winagent' directly, use 'TARGET=winagent')
 endif
 .PHONY: winagent
 winagent:
-	${MAKE} ${WINDOWS_BINS} CFLAGS="-DCLIENT -DWIN32 -I./${EXTERNAL_ZLIB}" LDFLAGS="-lwsock32 -lwevtapi -lshlwapi -lcomctl32 -lws2_32 -mwindows"
+	${MAKE} ${WINDOWS_BINS} CFLAGS="-DCLIENT -DWIN32 -I./${EXTERNAL_ZLIB} -I./ -I./headers/" LDFLAGS="-lws2_32 -lshlwapi -lwevtapi -lcomctl32 -lws2_32 -mwindows -lm -lsecur32"
 	cd ${EXTERNAL_LUA}src/ && ${MAKE} CC=${MING_BASE}${CC} -f Makefile.mingw mingw
 	cp ${EXTERNAL_LUA}src/ossec-lua.exe win32/
 	cp ${EXTERNAL_LUA}src/ossec-luac.exe win32/
@@ -1248,7 +1248,7 @@ win32/os_win32ui.exe: win32/resource.o win32/win_service_rk.o ${win32_ui_o} adda
 
 #win32/agent_auth.exe: win32/agent_auth.c shared/*.c os_regex/*.c os_net/*.c os_crypto/md5/*.c win32/win_service.c addagent/validate.c
 win32/agent_auth.exe: win32/agent_auth.c ${ossec_libs}
-	${OSSEC_CCBIN} -DARGV0=\"agent-auth\" -DCLIENT -DWIN32 -I./external/zlib-1.2.8/ -O2 -DMAX_AGENTS=2048 -DOSSECHIDS -DDEFAULTDIR=\"/var/ossec\" -DUSER=\"ossec\" -DREMUSER=\"ossecr\" -DGROUPGLOBAL=\"ossec\" -DMAILUSER=\"ossecm\" -DLinux -Wall -Wextra -I./ -I./headers/ -lws2_32 -lshlwapi -lwevtapi -lcomctl32 -lws2_32 -mwindows -lm -lsecur32 shared/*.c os_regex/*.c os_net/*.c os_crypto/md5/*.c win32/win_service.c addagent/validate.c os_xml.a  win32/agent_auth.c -o $@
+	${OSSEC_CCBIN} -DARGV0=\"agent-auth\" -DCLIENT -DWIN32 -I./external/zlib-1.2.8/ -O2 -DMAX_AGENTS=2048 -DOSSECHIDS -DDEFAULTDIR=\"/var/ossec\" -DUSER=\"ossec\" -DREMUSER=\"ossecr\" -DGROUPGLOBAL=\"ossec\" -DMAILUSER=\"ossecm\" -DLinux -Wall -Wextra -I./ -I./headers/ -lws2_32 -lshlwapi -lwevtapi -lcomctl32 -lws2_32 -mwindows -lm -lsecur32 os_auth/main-client.c -o $@
 
 ####################
 #### Clean #########

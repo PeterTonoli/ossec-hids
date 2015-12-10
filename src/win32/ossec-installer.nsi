@@ -152,7 +152,7 @@ Section "OSSEC Agent (required)" MainSec
     File ossec-agent-eventchannel.exe
     File default-ossec.conf
     File manage_agents.exe
-    File agent-auth.exe
+    File agent_auth.exe
     File /oname=win32ui.exe os_win32ui.exe
     File ossec-rootcheck.exe
     File internal_options.conf
