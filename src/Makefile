@@ -177,6 +177,10 @@ ifneq (,$(filter ${USE_INOTIFY},auto yes y Y 1))
 		OSSEC_LDFLAGS+=-linotify -L/usr/local/lib -I/usr/local/include
 		OSSEC_CFLAGS+=-I/usr/local/include
 	endif
+	ifeq (${uname_S},OpenBSD)
+		OSSEC_LDFLAGS+=-R/usr/local/lib/inotify -linotify -L/usr/local/lib -I/usr/local/include
+		OSSEC_CFLAGS -I/usr/local/inblude -I/usr/local/include/inotify  -L/usr/local/lib/inotify
+	endif
 endif
 
 ifneq (,$(filter ${USE_PRELUDE},auto yes y Y 1))
