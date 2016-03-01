@@ -20,7 +20,7 @@ OSSEC_USER_REM?=ossecr
 USE_PRELUDE?=no
 USE_ZEROMQ?=no
 USE_GEOIP?=no
-USE_INOTIFY=no
+USE_INOTIFY=yes
 
 ifneq (${TARGET},winagent)
 	USE_PICVIZ?=yes
@@ -179,7 +179,7 @@ ifneq (,$(filter ${USE_INOTIFY},auto yes y Y 1))
 	endif
 	ifeq (${uname_S},OpenBSD)
 		OSSEC_LDFLAGS+=-R/usr/local/lib/inotify -linotify -L/usr/local/lib -I/usr/local/include
-		OSSEC_CFLAGS -I/usr/local/inblude -I/usr/local/include/inotify  -L/usr/local/lib/inotify
+		OSSEC_CFLAGS+=-I/usr/local/inblude -I/usr/local/include/inotify  -L/usr/local/lib/inotify
 	endif
 endif
 
