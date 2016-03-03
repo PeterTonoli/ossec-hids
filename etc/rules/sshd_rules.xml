@@ -355,6 +355,19 @@
     <description>No hostkey alg.</description>
   </rule>
 
+  <rule id="5752" level="1">
+    <decoded_as>sshd</decoded_as>
+    <if_sid>1002</if_sid>
+    <match>Unable to negotiate with </match>
+    <description>sshd could not negotiate with client.</description>
+  </rule>
+
+  <rule id="5753" level="2">
+    <if_sid>5752</if_sid>
+    <match>no matching cipher found.</match>
+    <description>sshd could not negotiate with client, no matching cipher.</description>
+  </rule>
+
 </group> <!-- SYSLOG, SSHD -->
 
 <!-- EOF -->
