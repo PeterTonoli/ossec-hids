@@ -1134,7 +1134,7 @@ endif #TEST
 
 TEST_CHILD_PROGRAMS+=test_os_zlib
 TEST_CHILD_PROGRAMS+=test_os_xml
-ifneq($TRAVIS, true)
+ifneq (${TRAVIS}, true)
 TEST_CHILD_PROGRAMS+=test_os_net
 endif
 test_programs = ${TEST_CHILD_PROGRAMS}
@@ -1170,8 +1170,8 @@ test_os_regex: tests/test_os_regex.c ${os_regex_o}
 test_os_crypto: tests/test_os_crypto.c ${crypto_o} ${shared_o} ${os_xml_o} ${os_net_o} ${os_regex_o} ${ZLIB_LIB}
 	${OSSEC_CCBIN} ${OSSEC_CFLAGS} $^ ${OSSEC_LDFLAGS} -o $@
 
-#test_os_net: tests/test_os_net.c ${os_net_o} ${shared_o} ${os_regex_o} ${os_xml_o}
-#	${OSSEC_CCBIN} ${OSSEC_CFLAGS} $^ ${OSSEC_LDFLAGS} -o $@
+test_os_net: tests/test_os_net.c ${os_net_o} ${shared_o} ${os_regex_o} ${os_xml_o}
+	${OSSEC_CCBIN} ${OSSEC_CFLAGS} $^ ${OSSEC_LDFLAGS} -o $@
 
 test_shared: tests/test_shared.c ${shared_o} ${os_xml_o} ${os_net_o} ${os_regex_o}
 	${OSSEC_CCBIN} ${OSSEC_CFLAGS} $^ ${OSSEC_LDFLAGS} -o $@
