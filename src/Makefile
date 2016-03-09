@@ -1132,7 +1132,14 @@ ifdef TEST
 	OSSEC_LDFLAGS+=${LDFLAGS_TEST}
 endif #TEST
 
-test_programs = test_os_zlib test_os_xml test_os_regex test_os_crypto test_shared
+TEST_CHILD_PROGRAMS+=test_os_zlib
+TEST_CHILD_PROGRAMS+=test_os_xml
+ifneq($TRAVIS, true)
+TEST_CHILD_PROGRAMS+=test_os_net
+endif
+test_programs = ${TEST_CHILD_PROGRAMS}
+
+#test_programs = test_os_zlib test_os_xml test_os_regex test_os_crypto test_shared
 
 .PHONY: test run_tests build_tests test_valgrind test_coverage
 
