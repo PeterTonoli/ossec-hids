@@ -2830,4 +2830,26 @@ Jul 26 13:57:56 mx1.example.org outbound/smtp: 127.0.0.1 1406297159-06f4a35b4df2
   <order>srcip,url</order>
 </decoder>
 
+<!-- apple airport -->
+
+<decoder name="airport">
+  <program_name>80211</program_name>
+</decoder>
+
+<decoder name="airport-station">
+  <parent>airport</parent>
+  <prematch offset="after_parent"> station </prematch>
+  <regex offset="after_parent">^(\S+) \.* station (\S+)</regex>
+  <order>action, extra_data</order>
+</decoder>
+
+<decoder name="airport-supplicant">
+  <parent>airport</parent>
+  <prematch offset="after_parent"> supplicant </prematch>
+  <regex offset="after_parent">^(\S+) \.* supplicant (\S+)</regex>
+  <order>action, extra_data</order>
+</decoder>
+
+
+
 <!-- EOF -->
