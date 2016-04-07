@@ -32,7 +32,7 @@
 #define OS_FLSIZE       OS_SIZE_256     /* Maximum file size            */
 #define OS_HEADER_SIZE  OS_SIZE_128     /* Maximum header size          */
 #define OS_LOG_HEADER   OS_SIZE_256     /* Maximum log header size      */
-#define IPSIZE          16              /* IP Address size              */
+#define IPSIZE          INET6_ADDRSTRLEN /* IP Address size             */
 
 /* Some global names */
 #define __ossec_name    "OSSEC HIDS"
@@ -173,6 +173,7 @@ http://www.ossec.net/main/license/\n"
 #define EVENTS            "/logs/archives"
 #define EVENTS_DAILY      "/logs/archives/archives.log"
 #define ALERTS            "/logs/alerts"
+#define ALERTS_PATH       DEFAULTDIR ALERTS
 #define ALERTS_DAILY      "/logs/alerts/alerts.log"
 #define ALERTSJSON_DAILY  "/logs/alerts/alerts.json"
 #define FWLOGS            "/logs/firewall"
@@ -248,11 +249,11 @@ http://www.ossec.net/main/license/\n"
 
 /* Default ports */
 #ifndef DEFAULT_SECURE
-#define DEFAULT_SECURE 1514 /* Default encrypted */
+#define DEFAULT_SECURE "1514" /* Default encrypted */
 #endif
 
 #ifndef DEFAULT_SYSLOG
-#define DEFAULT_SYSLOG 514 /* Default syslog port - udp */
+#define DEFAULT_SYSLOG "514" /* Default syslog port - udp */
 #endif
 
 /* XML global elements */
