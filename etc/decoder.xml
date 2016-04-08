@@ -2830,4 +2830,19 @@ Jul 26 13:57:56 mx1.example.org outbound/smtp: 127.0.0.1 1406297159-06f4a35b4df2
   <order>srcip,url</order>
 </decoder>
 
+
+<!-- nsd -->
+<decoder name="nsd">
+  <program_name>^nsd</program_name>
+</decoder>
+
+<decoder name="nsd-from">
+  <parent>nsd</parent>
+  <prematch> from </prematch>
+  <regex offset="after_prematch">^(\S+) (\S+): </regex>
+  <order>srcip, protocol</order>
+</decoder>
+
+
+
 <!-- EOF -->
